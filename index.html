@@ -1,0 +1,664 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Social Awareness Hub</title>
+
+  <!-- Tailwind CDN (for quick single-file) -->
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <!-- Lucide icons -->
+  <script src="https://unpkg.com/lucide@0.264.0/dist/lucide.min.js"></script>
+  <!-- Font Awesome -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" integrity="sha512-wxD1XkV4l9oS2K6iY0a9qQx0lT4h6s8q0ZV3O4MSh1buyl6d4zq8v3M5l9pI7bYh1s6Q6v3l6d5x0c3Yz2V7NA==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+
+  <style>
+    :root{
+      --glass-bg: rgba(255,255,255,0.06);
+      --glass-border: rgba(255,255,255,0.08);
+      --accent: 255, 122, 255; /* neon accent as rgb */
+      --accent2: 63, 132, 255;
+    }
+
+    /* Animated gradient background */
+    body {
+      min-height: 100vh;
+      margin: 0;
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+      background: radial-gradient(1200px 600px at 10% 10%, rgba(63,132,255,0.12), transparent),
+                  radial-gradient(900px 500px at 90% 90%, rgba(255,122,255,0.08), transparent),
+                  linear-gradient(135deg,#071027 0%, #0f172a 60%);
+      color: #e6eef8;
+      -webkit-font-smoothing:antialiased;
+      -moz-osx-font-smoothing:grayscale;
+      transition: background 0.4s ease;
+    }
+
+    /* Neon glow header gradient text */
+    .gradient-text {
+      background: linear-gradient(90deg, rgba(var(--accent2),1), rgba(var(--accent),1));
+      background-clip: text;
+      -webkit-text-fill-color: transparent;
+      filter: drop-shadow(0 6px 18px rgba(63,132,255,0.12));
+    }
+
+    /* Glass card */
+    .glass {
+      background: var(--glass-bg);
+      border: 1px solid var(--glass-border);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      box-shadow: 0 6px 30px rgba(2,6,23,0.6), inset 0 1px 0 rgba(255,255,255,0.02);
+      border-radius: 12px;
+    }
+
+    /* Stronger glass for modals */
+    .glass-strong {
+      background: rgba(8,10,20,0.7);
+      border: 1px solid rgba(255,255,255,0.06);
+      backdrop-filter: blur(12px);
+    }
+
+    /* Neon border on hover */
+    .neon-hover:hover {
+      box-shadow: 0 0 18px rgba(var(--accent),0.12), 0 10px 30px rgba(0,0,0,0.6);
+      transform: translateY(-6px) scale(1.01);
+      transition: transform 260ms ease, box-shadow 260ms ease;
+    }
+
+    /* Sidebar active */
+    .nav-btn.active {
+      background: linear-gradient(90deg, rgba(var(--accent2),0.06), rgba(var(--accent),0.04));
+      box-shadow: 0 6px 24px rgba(var(--accent),0.06);
+      border-left: 3px solid rgba(var(--accent),0.9);
+    }
+
+    /* Modal animation */
+    .modal-enter {
+      transform: perspective(600px) translateY(-20px) scale(0.92) rotateX(6deg);
+      opacity: 0;
+    }
+    .modal-enter.modal-enter-active {
+      transform: perspective(600px) translateY(0px) scale(1) rotateX(0deg);
+      opacity: 1;
+      transition: all 360ms cubic-bezier(.22,1,.36,1);
+    }
+
+    /* Carousel */
+    .carousel-track { transition: transform 520ms cubic-bezier(.22,1,.36,1); will-change: transform; }
+    .dot { width: 8px; height: 8px; border-radius: 999px; background: rgba(255,255,255,0.12);}
+    .dot.active { background: rgba(var(--accent),0.95); box-shadow: 0 6px 18px rgba(var(--accent),0.16) }
+
+    /* Dark/Light mode toggles */
+    .light-theme {
+      background: linear-gradient(135deg,#e6f0ff 0%, #fef7ff 60%);
+      color: #111827;
+    }
+    .light-theme .glass { background: rgba(255,255,255,0.65); border: 1px solid rgba(255,255,255,0.8); color: #0b1220; }
+    .light-theme .glass-strong { background: rgba(255,255,255,0.88); color: #061028; }
+    .light-theme .gradient-text { background: linear-gradient(90deg,#4f46e5,#06b6d4); -webkit-text-fill-color: transparent; }
+
+    /* Responsive tweaks */
+    @media (max-width: 768px) {
+      aside { position: fixed; z-index: 40; left: 12px; top: 12px; width: calc(100% - 24px); display: flex; justify-content: space-between; padding: 8px; border-radius: 10px; }
+      main { margin-left: 0 !important; margin-top: 64px; padding: 16px; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Sidebar -->
+  <aside class="glass p-4 w-72 h-screen fixed left-6 top-6 flex flex-col gap-6 z-40">
+    <div class="flex items-center gap-3">
+      <div class="w-12 h-12 rounded-lg flex items-center justify-center bg-gradient-to-br from-indigo-600 to-pink-500 shadow-lg">
+        <i class="fa-solid fa-hands-praying text-white"></i>
+      </div>
+      <div>
+        <div class="text-sm text-slate-200">Welcome</div>
+        <div class="text-lg font-bold gradient-text">Social Awareness Hub</div>
+      </div>
+    </div>
+
+    <nav class="flex flex-col gap-2 mt-2">
+      <button class="nav-btn text-left flex items-center gap-3 py-2 px-3 rounded-md glass neon-hover active" data-page="home">
+        <i data-feather="home" class="lucide-icon w-5 h-5"></i>
+        <span data-en="Home" data-hi="होम">Home</span>
+      </button>
+
+      <button class="nav-btn text-left flex items-center gap-3 py-2 px-3 rounded-md glass neon-hover" data-page="check">
+        <i data-feather="search" class="lucide-icon w-5 h-5"></i>
+        <span data-en="Check Status" data-hi="स्थिति जांचें">Check Status</span>
+      </button>
+
+      <button class="nav-btn text-left flex items-center gap-3 py-2 px-3 rounded-md glass neon-hover" data-page="scholarship">
+        <i class="fa-solid fa-award w-5 h-5"></i>
+        <span data-en="Scholarship Scheme" data-hi="छात्रवृत्ति योजना">Scholarship Scheme</span>
+      </button>
+
+      <button class="nav-btn text-left flex items-center gap-3 py-2 px-3 rounded-md glass neon-hover" data-page="pm">
+        <i class="fa-solid fa-hand-holding-heart w-5 h-5"></i>
+        <span data-en="PM Yojana" data-hi="पीएम योजना">PM Yojana</span>
+      </button>
+
+      <button class="nav-btn text-left flex items-center gap-3 py-2 px-3 rounded-md glass neon-hover" data-page="helpdesk">
+        <i data-feather="phone" class="lucide-icon w-5 h-5"></i>
+        <span data-en="Helpdesk" data-hi="हेल्पडेस्क">Helpdesk</span>
+      </button>
+
+      <button class="nav-btn text-left flex items-center gap-3 py-2 px-3 rounded-md glass neon-hover" data-page="feedback">
+        <i data-feather="message-square" class="lucide-icon w-5 h-5"></i>
+        <span data-en="Feedback" data-hi="प्रतिक्रिया">Feedback</span>
+      </button>
+    </nav>
+
+    <div class="mt-auto flex gap-2 items-center justify-between">
+      <div class="flex gap-2">
+        <button id="langToggle" class="glass px-3 py-1 rounded-md text-sm">हिन्दी</button>
+        <button id="themeToggle" class="glass px-3 py-1 rounded-md text-sm">🌙</button>
+      </div>
+      <div class="text-xs text-slate-300">Hackathon UI</div>
+    </div>
+  </aside>
+
+  <!-- Main content -->
+  <main class="ml-[320px] p-8 transition-all duration-300">
+    <!-- Top header -->
+    <header class="flex items-center justify-center mb-8">
+      <h1 class="text-4xl font-extrabold gradient-text">Social Awareness Hub</h1>
+    </header>
+
+    <!-- Pages container -->
+    <div id="pages" class="space-y-8">
+
+      <!-- HOME -->
+      <section id="page-home" class="page glass p-6 rounded-2xl shadow-xl">
+        <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-6">
+          <div>
+            <h2 class="text-2xl font-bold"> <i class="fa-solid fa-circle-info mr-2"></i> <span data-en="Welcome to Social Awareness Hub" data-hi="सोशल अवेयरनेस हब में आपका स्वागत है">Welcome to Social Awareness Hub</span></h2>
+            <p class="mt-2 text-slate-300 max-w-xl" data-en="Find help about Aadhaar seeding, DBT, scholarships and government schemes." data-hi="Aadhaar सीडिंग, DBT, छात्रवृत्ति और सरकारी योजनाओं के बारे में जानकारी प्राप्त करें।">Find help about Aadhaar seeding, DBT, scholarships and government schemes.</p>
+          </div>
+
+          <div class="flex gap-3">
+            <button class="glass px-4 py-2 rounded-md flex items-center gap-2" id="openHowTo">
+              <i class="fa-solid fa-video"></i><span data-en="Upload Video" data-hi="वीडियो अपलोड करें">Upload Video</span>
+            </button>
+            <button class="glass px-4 py-2 rounded-md flex items-center gap-2" id="openModalDemo">
+              <i class="fa-solid fa-play"></i><span data-en="Preview" data-hi="पूर्वावलोकन">Preview</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- 3 cards -->
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-6 mt-8">
+          <!-- Card 1 -->
+          <article class="glass p-6 rounded-xl neon-hover transform-gpu perspective-300" data-card="importance">
+            <div class="h-36 w-full rounded-lg border-dashed border-2 border-white/10 flex items-center justify-center mb-4">
+              <!-- empty image slot -->
+              <img src="" alt="" class="max-h-full max-w-full object-contain" />
+              <div class="text-sm text-slate-300" data-en="Empty image slot" data-hi="खाली इमेज स्लॉट">Empty image slot</div>
+            </div>
+            <h3 class="font-semibold text-lg" data-en="What is Importance?" data-hi="यह क्यों महत्वपूर्ण है?">What is Importance?</h3>
+            <p class="text-sm mt-2 text-slate-300"> <span data-en="Short description..." data-hi="संक्षिप्त विवरण...">Short description...</span> </p>
+            <div class="mt-4 flex gap-2">
+              <button class="btn-open-card glass px-3 py-2 rounded-md" data-card="importance"><i class="fa-solid fa-arrow-right"></i> <span data-en="Open" data-hi="खोलें">Open</span></button>
+            </div>
+          </article>
+
+          <!-- Card 2 -->
+          <article class="glass p-6 rounded-xl neon-hover" data-card="difference">
+            <div class="h-36 w-full rounded-lg border-dashed border-2 border-white/10 flex items-center justify-center mb-4">
+              <img src="" alt="" class="max-h-full max-w-full object-contain" />
+              <div class="text-sm text-slate-300" data-en="Empty image slot" data-hi="खाली इमेज स्लॉट">Empty image slot</div>
+            </div>
+            <h3 class="font-semibold text-lg" data-en="Difference between DBT and Aadhaar Linked" data-hi="DBT और आधार लिंक में अंतर">Difference between DBT and Aadhaar Linked</h3>
+            <p class="text-sm mt-2 text-slate-300"> <span data-en="Short description..." data-hi="संक्षिप्त विवरण...">Short description...</span> </p>
+            <div class="mt-4 flex gap-2">
+              <button class="btn-open-card glass px-3 py-2 rounded-md" data-card="difference"><i class="fa-solid fa-arrow-right"></i> <span data-en="Open" data-hi="खोलें">Open</span></button>
+            </div>
+          </article>
+
+          <!-- Card 3 -->
+          <article class="glass p-6 rounded-xl neon-hover" data-card="howtoseed">
+            <div class="h-36 w-full rounded-lg border-dashed border-2 border-white/10 flex items-center justify-center mb-4">
+              <img src="" alt="" class="max-h-full max-w-full object-contain" />
+              <div class="text-sm text-slate-300" data-en="Empty image slot" data-hi="खाली इमेज स्लॉट">Empty image slot</div>
+            </div>
+            <h3 class="font-semibold text-lg" data-en="How to Seed?" data-hi="कैसे सीड करें?">How to Seed?</h3>
+            <p class="text-sm mt-2 text-slate-300"> <span data-en="Short description..." data-hi="संक्षिप्त विवरण...">Short description...</span> </p>
+            <div class="mt-4 flex gap-2">
+              <button class="btn-open-card glass px-3 py-2 rounded-md" data-card="howtoseed"><i class="fa-solid fa-arrow-right"></i> <span data-en="Open" data-hi="खोलें">Open</span></button>
+            </div>
+          </article>
+        </div>
+
+        <!-- Video placeholder -->
+        <div class="mt-8 glass p-6 rounded-lg">
+          <div class="h-48 w-full rounded-md bg-gradient-to-br from-slate-800 to-slate-900 flex items-center justify-center text-slate-300">
+            <i class="fa-solid fa-video mr-2"></i> <span data-en="Video placeholder — upload later" data-hi="वीडियो प्लेसहोल्डर — बाद में अपलोड करें">Video placeholder — upload later</span>
+          </div>
+        </div>
+      </section>
+
+      <!-- CHECK STATUS -->
+      <section id="page-check" class="page glass p-6 rounded-2xl shadow-xl hidden">
+        <div class="grid md:grid-cols-2 gap-6">
+          <div class="glass p-4 rounded-md">
+            <h3 class="font-bold text-lg" data-en="Check Aadhaar Status" data-hi="आधार स्थिति जांचें">Check Aadhaar Status</h3>
+            <p class="text-sm mt-2 text-slate-300" data-en="Use the official UIDAI bank seeding check" data-hi="आधिकारिक UIDAI बैंक सीडिंग जांच का उपयोग करें">Use the official UIDAI bank seeding check</p>
+            <a target="_blank" rel="noreferrer" href="https://myaadhaar.uidai.gov.in/bank-seeding-status" class="inline-block mt-4 glass px-4 py-2 rounded-md">🔗 <span data-en="Check Your Status Here" data-hi="यहाँ अपनी स्थिति जांचें">Check Your Status Here</span></a>
+            <div class="mt-4 h-36 bg-slate-900 rounded-md flex items-center justify-center text-slate-400"><span data-en="Aadhaar video placeholder" data-hi="आधार वीडियो प्लेसहोल्डर">Aadhaar video placeholder</span></div>
+          </div>
+
+          <div class="glass p-4 rounded-md">
+            <h3 class="font-bold text-lg" data-en="Check DBT Status" data-hi="डीबीटी स्थिति जांचें">Check DBT Status</h3>
+            <p class="text-sm mt-2 text-slate-300" data-en="Find DBT info from official resources" data-hi="आधिकारिक संसाधनों से DBT जानकारी प्राप्त करें">Find DBT info from official resources</p>
+            <a target="_blank" rel="noreferrer" href="https://uidai.gov.in/en/309-english-uk/faqs/direct-benefit-transfer-dbt/about-dbt.html" class="inline-block mt-4 glass px-4 py-2 rounded-md">🔗 <span data-en="Check Status Here" data-hi="स्थिति यहाँ जांचें">Check Status Here</span></a>
+            <div class="mt-4 h-36 bg-slate-900 rounded-md flex items-center justify-center text-slate-400"><span data-en="DBT video placeholder" data-hi="DBT वीडियो प्लेसहोल्डर">DBT video placeholder</span></div>
+          </div>
+        </div>
+
+        <!-- Questionnaire -->
+        <div class="mt-6 glass p-4 rounded-md">
+          <form id="statusForm" class="space-y-4">
+            <div>
+              <label class="font-medium" data-en="Is your Aadhaar seeded?" data-hi="क्या आपका Aadhaar सीड किया गया है?">Is your Aadhaar seeded?</label>
+              <div class="mt-2 flex gap-4">
+                <label class="flex items-center gap-2"><input type="radio" name="q1" value="yes"> <span data-en="Yes" data-hi="हाँ">Yes</span></label>
+                <label class="flex items-center gap-2"><input type="radio" name="q1" value="no"> <span data-en="No" data-hi="नहीं">No</span></label>
+              </div>
+            </div>
+
+            <div id="q2Block" class="hidden">
+              <label class="font-medium" data-en="Is your DBT enabled?" data-hi="क्या आपका DBT सक्षम है?">Is your DBT enabled?</label>
+              <div class="mt-2 flex gap-4">
+                <label class="flex items-center gap-2"><input type="radio" name="q2" value="yes"> <span data-en="Yes" data-hi="हाँ">Yes</span></label>
+                <label class="flex items-center gap-2"><input type="radio" name="q2" value="no"> <span data-en="No" data-hi="नहीं">No</span></label>
+              </div>
+            </div>
+
+            <div id="statusMessage" class="text-yellow-300 font-medium"></div>
+          </form>
+        </div>
+      </section>
+
+      <!-- SCHOLARSHIP (carousel) -->
+      <section id="page-scholarship" class="page glass p-6 rounded-2xl shadow-xl hidden">
+        <div class="flex items-center justify-between">
+          <h2 class="text-2xl font-bold" data-en="Scholarship Schemes" data-hi="छात्रवृत्ति योजनाएँ">Scholarship Schemes</h2>
+          <div class="flex gap-2 items-center">
+            <button id="schPrev" class="glass px-3 py-2 rounded-md">⟵</button>
+            <button id="schNext" class="glass px-3 py-2 rounded-md">⟶</button>
+            <label class="flex items-center gap-2 text-sm"><input type="checkbox" id="schAuto" checked> <span data-en="Auto" data-hi="ऑटो">Auto</span></label>
+          </div>
+        </div>
+
+        <div class="mt-4">
+          <div class="relative overflow-hidden rounded-lg h-56">
+            <div id="schTrack" class="carousel-track flex h-full">
+              <!-- Poster slots (empty) -->
+              <a class="sh-slide flex items-center justify-center w-full h-full border-dashed border-2 border-white/8" href="#" target="_blank" data-title="Poster 1">
+                <div class="text-center">
+                  <div class="text-lg font-semibold" data-en="Poster 1" data-hi="पोस्टर 1">Poster 1</div>
+                  <div class="text-sm text-slate-300" data-en="(empty slot)" data-hi="(खाली)"> (empty slot) </div>
+                </div>
+              </a>
+              <a class="sh-slide flex items-center justify-center w-full h-full border-dashed border-2 border-white/8" href="#" target="_blank" data-title="Poster 2">
+                <div class="text-center">
+                  <div class="text-lg font-semibold" data-en="Poster 2" data-hi="पोस्टर 2">Poster 2</div>
+                  <div class="text-sm text-slate-300" data-en="(empty slot)" data-hi="(खाली)"> (empty slot) </div>
+                </div>
+              </a>
+              <a class="sh-slide flex items-center justify-center w-full h-full border-dashed border-2 border-white/8" href="#" target="_blank" data-title="Poster 3">
+                <div class="text-center">
+                  <div class="text-lg font-semibold" data-en="Poster 3" data-hi="पोस्टर 3">Poster 3</div>
+                  <div class="text-sm text-slate-300" data-en="(empty slot)" data-hi="(खाली)"> (empty slot) </div>
+                </div>
+              </a>
+            </div>
+          </div>
+
+          <div class="mt-4 h-36 glass rounded-md flex items-center justify-center text-slate-300">
+            <i class="fa-solid fa-video mr-2"></i> <span data-en="Video placeholder" data-hi="वीडियो प्लेसहोल्डर">Video placeholder</span>
+          </div>
+        </div>
+      </section>
+
+      <!-- PM YOJANA (carousel) -->
+      <section id="page-pm" class="page glass p-6 rounded-2xl shadow-xl hidden">
+        <div class="flex items-center justify-between">
+          <h2 class="text-2xl font-bold" data-en="PM Yojana" data-hi="पीएम योजना">PM Yojana</h2>
+          <div class="flex gap-2 items-center">
+            <button id="pmPrev" class="glass px-3 py-2 rounded-md">⟵</button>
+            <button id="pmNext" class="glass px-3 py-2 rounded-md">⟶</button>
+            <label class="flex items-center gap-2 text-sm"><input type="checkbox" id="pmAuto" checked> <span data-en="Auto" data-hi="ऑटो">Auto</span></label>
+          </div>
+        </div>
+
+        <div class="mt-4">
+          <div class="relative overflow-hidden rounded-lg h-56">
+            <div id="pmTrack" class="carousel-track flex h-full">
+              <!-- poster slots -->
+              <a class="pm-slide flex items-center justify-center w-full h-full border-dashed border-2 border-white/8" href="#" target="_blank" data-title="PM Poster 1">
+                <div class="text-center">
+                  <div class="text-lg font-semibold" data-en="PM Poster 1" data-hi="पीएम पोस्टर 1">PM Poster 1</div>
+                  <div class="text-sm text-slate-300" data-en="(empty slot)" data-hi="(खाली)"> (empty slot) </div>
+                </div>
+              </a>
+              <a class="pm-slide flex items-center justify-center w-full h-full border-dashed border-2 border-white/8" href="#" target="_blank" data-title="PM Poster 2">
+                <div class="text-center">
+                  <div class="text-lg font-semibold" data-en="PM Poster 2" data-hi="पीएम पोस्टर 2">PM Poster 2</div>
+                  <div class="text-sm text-slate-300" data-en="(empty slot)" data-hi="(खाली)"> (empty slot) </div>
+                </div>
+              </a>
+              <a class="pm-slide flex items-center justify-center w-full h-full border-dashed border-2 border-white/8" href="#" target="_blank" data-title="PM Poster 3">
+                <div class="text-center">
+                  <div class="text-lg font-semibold" data-en="PM Poster 3" data-hi="पीएम पोस्टर 3">PM Poster 3</div>
+                  <div class="text-sm text-slate-300" data-en="(empty slot)" data-hi="(खाली)"> (empty slot) </div>
+                </div>
+              </a>
+            </div>
+          </div>
+
+          <div class="mt-4 h-36 glass rounded-md flex items-center justify-center text-slate-300">
+            <i class="fa-solid fa-video mr-2"></i> <span data-en="Video placeholder" data-hi="वीडियो प्लेसहोल्डर">Video placeholder</span>
+          </div>
+        </div>
+      </section>
+
+      <!-- HELPDESK -->
+<section id="page-helpdesk" class="page glass p-6 rounded-2xl shadow-xl hidden">
+  <h2 class="text-2xl font-bold" data-en="Helpdesk" data-hi="हेल्पडेस्क">Helpdesk</h2>
+  <div class="mt-4 grid md:grid-cols-2 gap-6">
+    <div class="glass p-4 rounded-md">
+      <h3 class="font-semibold" data-en="Helpline Number" data-hi="हेल्पलाइन नंबर">Helpline Number</h3>
+      <a class="text-sky-300 block mt-2" href="tel:000222555888">000222555888</a>
+
+      <h3 class="font-semibold mt-4" data-en="Emails" data-hi="ईमेल्स">Emails</h3>
+      <ul class="text-sm mt-2 text-slate-300">
+        <li>a@gmail.com</li>
+        <li>b@gmail.com</li>
+      </ul>
+    </div>
+
+    <!-- Updated Helpdesk Form -->
+    <form id="helpdeskForm" 
+          class="glass p-4 rounded-md space-y-3" 
+          action="https://formspree.io/f/mandrbgb" 
+          method="POST">
+      <h3 class="font-semibold" data-en="Ask a Question" data-hi="प्रश्न पूछें">Ask a Question</h3>
+      <input name="name" placeholder="Name" 
+             class="w-full p-2 rounded-md bg-transparent border border-white/8" required />
+      <input name="email" type="email" placeholder="Email" 
+             class="w-full p-2 rounded-md bg-transparent border border-white/8" required />
+      <textarea name="question" rows="4" placeholder="Your question" 
+                class="w-full p-2 rounded-md bg-transparent border border-white/8" required></textarea>
+      <button type="submit" class="glass px-4 py-2 rounded-md">Submit</button>
+    </form>
+  </div>
+</section>
+
+
+      <!-- FEEDBACK -->
+      <section id="page-feedback" class="page glass p-6 rounded-2xl shadow-xl hidden">
+        <h2 class="text-2xl font-bold" data-en="Feedback" data-hi="प्रतिक्रिया">Feedback</h2>
+        <form id="feedbackForm" class="mt-4 glass p-4 rounded-md space-y-3" onsubmit="sendFeedback(event)">
+          <div class="flex gap-2 items-center">
+            <div class="flex gap-1">
+              <button type="button" class="feedback-star glass px-3 py-1 rounded-md" data-value="1">1★</button>
+              <button type="button" class="feedback-star glass px-3 py-1 rounded-md" data-value="2">2★</button>
+              <button type="button" class="feedback-star glass px-3 py-1 rounded-md" data-value="3">3★</button>
+              <button type="button" class="feedback-star glass px-3 py-1 rounded-md" data-value="4">4★</button>
+              <button type="button" class="feedback-star glass px-3 py-1 rounded-md" data-value="5">5★</button>
+            </div>
+            <div class="ml-4 text-xl"> <button type="button" class="emoji-btn" data-emoji="happy">😊</button> <button type="button" class="emoji-btn" data-emoji="neutral">😐</button> <button type="button" class="emoji-btn" data-emoji="sad">😞</button></div>
+          </div>
+          <textarea name="suggestion" rows="4" class="w-full p-2 rounded-md bg-transparent border border-white/8" placeholder="Any suggestions?"></textarea>
+          <button class="glass px-4 py-2 rounded-md">Send Feedback</button>
+        </form>
+      </section>
+
+    </div>
+  </main>
+
+  <!-- Card modal -->
+  <div id="cardModal" class="fixed inset-0 z-50 hidden items-center justify-center p-6">
+    <div class="absolute inset-0 bg-black/60 backdrop-blur-sm" onclick="closeCardModal()"></div>
+    <div id="cardModalBox" class="relative glass-strong p-6 rounded-2xl w-full max-w-2xl transform transition-transform duration-300 modal-enter">
+      <button class="absolute right-4 top-4 glass px-2 py-1 rounded-md" onclick="closeCardModal()">✕</button>
+      <h3 id="cardModalTitle" class="text-2xl font-bold mb-2"></h3>
+      <p id="cardModalBody" class="text-slate-300"></p>
+      <div class="mt-4 p-4 bg-white/5 rounded-md text-sm text-slate-300">More details can be added here (edit content later).</div>
+    </div>
+  </div>
+
+  <script>
+    // Initialize lucide icons
+    if (window.lucide) lucide.replace();
+
+    // Page navigation
+    const navBtns = document.querySelectorAll('.nav-btn');
+    const pages = document.querySelectorAll('.page');
+    function showPage(id) {
+      pages.forEach(p => { p.classList.add('hidden'); });
+      const el = document.getElementById('page-' + id);
+      if (el) el.classList.remove('hidden');
+      navBtns.forEach(b => b.classList.remove('active'));
+      document.querySelectorAll(`.nav-btn[data-page="${id}"]`).forEach(b=>b.classList.add('active'));
+      // smooth focus
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+    navBtns.forEach(btn => {
+      const page = btn.getAttribute('data-page');
+      btn.addEventListener('click', () => showPage(page));
+    });
+    // default
+    showPage('home');
+
+    // Language toggle
+    let lang = 'en';
+    const langBtn = document.getElementById('langToggle');
+    function applyLang() {
+      document.querySelectorAll('[data-en]').forEach(el => {
+        const text = el.getAttribute('data-' + lang);
+        if (text !== null) el.innerText = text;
+      });
+      langBtn.innerText = (lang === 'en' ? 'हिन्दी' : 'English');
+    }
+    langBtn.addEventListener('click', () => {
+      lang = (lang === 'en' ? 'hi' : 'en');
+      applyLang();
+    });
+    applyLang();
+
+    // Theme toggle (dark/light)
+    const themeBtn = document.getElementById('themeToggle');
+    let light = false;
+    themeBtn.addEventListener('click', () => {
+      light = !light;
+      if (light) {
+        document.body.classList.add('light-theme');
+        themeBtn.innerText = '☀️';
+      } else {
+        document.body.classList.remove('light-theme');
+        themeBtn.innerText = '🌙';
+      }
+    });
+
+    // Card modal open
+    document.querySelectorAll('.btn-open-card, .card').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        const cardKey = btn.dataset.card || btn.getAttribute('data-card');
+        openCardModal(cardKey);
+      });
+    });
+
+    const cardContent = {
+      importance: {
+        title_en: 'What is Importance?',
+        title_hi: 'यह क्यों महत्वपूर्ण है?',
+        body_en: 'Aadhaar seeding and DBT ensure residents receive benefits accurately and quickly. It reduces leakages and manual processes.',
+        body_hi: 'Aadhaar सीडिंग और DBT यह सुनिश्चित करते हैं कि लाभार्थियों को लाभ तेज़ी से और सटीक रूप से मिलें।'
+      },
+      difference: {
+        title_en: 'Difference between DBT and Aadhaar Linked',
+        title_hi: 'DBT और Aadhaar लिंक में अंतर',
+        body_en: 'DBT (Direct Benefit Transfer) transfers subsidies to bank accounts. Aadhaar linking ties identity to records so transfers reach right person.',
+        body_hi: 'DBT लाभ सीधे बैंक खाते में भेजता है। Aadhaar लिंकिंग पहचान से जोड़कर यह सुनिश्चित करती है कि सही व्यक्ति को लाभ पहुंचे।'
+      },
+      howtoseed: {
+        title_en: 'How to Seed?',
+        title_hi: 'कैसे सीड करें?',
+        body_en: 'Visit your bank or UIDAI portal, provide Aadhaar details and follow bank-specific steps to seed your Aadhaar with your account.',
+        body_hi: 'अपने बैंक या UIDAI पोर्टल पर जाएं, Aadhaar विवरण दें और बैंक के निर्देशों का पालन करके सीडिंग करें।'
+      }
+    };
+
+    function openCardModal(key) {
+      const title = cardContent[key]['title_' + lang] || '';
+      const body = cardContent[key]['body_' + lang] || '';
+      document.getElementById('cardModalTitle').innerText = title;
+      document.getElementById('cardModalBody').innerText = body;
+      const mod = document.getElementById('cardModal');
+      mod.classList.remove('hidden');
+      setTimeout(()=> {
+        document.getElementById('cardModalBox').classList.add('modal-enter-active');
+      }, 16);
+    }
+    function closeCardModal() {
+      const mod = document.getElementById('cardModal');
+      document.getElementById('cardModalBox').classList.remove('modal-enter-active');
+      setTimeout(()=> mod.classList.add('hidden'), 260);
+    }
+
+    // Open "How to seed" via top button
+    document.getElementById('openHowTo').addEventListener('click', () => {
+      showPage('home');
+      openCardModal('howtoseed');
+    });
+
+    // Demo Preview button opens first card modal
+    document.getElementById('openModalDemo').addEventListener('click', () => openCardModal('importance'));
+
+    // Questionnaire logic (check page)
+    const q1Radios = document.querySelectorAll("input[name='q1']");
+    const q2Block = document.getElementById('q2Block');
+    const statusMessage = document.getElementById('statusMessage');
+
+    q1Radios.forEach(r => r.addEventListener('change', (e) => {
+      if (e.target.value === 'yes') {
+        q2Block.classList.remove('hidden');
+        statusMessage.innerText = '';
+      } else {
+        // redirect to home -> how to seed modal
+        statusMessage.innerText = (lang === 'en') ? "Redirecting to Home → How to Seed..." : "होम पर पुनः निर्देशित किया जा रहा है → कैसे सीड करें...";
+        setTimeout(() => {
+          showPage('home');
+          openCardModal('howtoseed');
+          statusMessage.innerText = '';
+          q1Radios.forEach(rr => rr.checked = false);
+        }, 900);
+      }
+    }));
+
+    // q2 logic
+    document.addEventListener('change', (e) => {
+      if (e.target && e.target.name === 'q2') {
+        if (e.target.value === 'yes') {
+          statusMessage.innerText = (lang === 'en') ? "✅ All set! Your Aadhaar & DBT appear enabled." : "✅ सब तैयार! आपका Aadhaar और DBT सक्रिय दिख रहा है।";
+        } else {
+          statusMessage.innerText = (lang === 'en') ? "Redirecting to Home → How to Seed..." : "होम पर पुनः निर्देशित किया जा रहा है → कैसे सीड करें...";
+          setTimeout(()=> {
+            showPage('home');
+            openCardModal('howtoseed');
+            statusMessage.innerText = '';
+            document.querySelectorAll("input[name='q1'], input[name='q2']").forEach(i=>i.checked=false);
+          }, 900);
+        }
+      }
+    });
+
+    // Scholarship carousel
+    const schTrack = document.getElementById('schTrack');
+    const schSlides = schTrack.querySelectorAll('.sh-slide');
+    const schPrev = document.getElementById('schPrev');
+    const schNext = document.getElementById('schNext');
+    const schAutoChk = document.getElementById('schAuto');
+    let schIndex = 0;
+    const schCount = schSlides.length;
+    function updateSch() {
+      schTrack.style.width = `${schCount * 100}%`;
+      schTrack.style.transform = `translateX(-${(schIndex / schCount) * 100}%)`;
+    }
+    schPrev.addEventListener('click', ()=> { schIndex = (schIndex-1+schCount)%schCount; updateSch(); });
+    schNext.addEventListener('click', ()=> { schIndex = (schIndex+1)%schCount; updateSch(); });
+    setInterval(()=> { if (schAutoChk.checked) { schIndex = (schIndex+1)%schCount; updateSch(); } }, 3500);
+    updateSch();
+
+    // PM carousel
+    const pmTrack = document.getElementById('pmTrack');
+    const pmSlides = pmTrack.querySelectorAll('.pm-slide');
+    const pmPrev = document.getElementById('pmPrev');
+    const pmNext = document.getElementById('pmNext');
+    const pmAutoChk = document.getElementById('pmAuto');
+    let pmIndex = 0;
+    const pmCount = pmSlides.length;
+    function updatePm() {
+      pmTrack.style.width = `${pmCount * 100}%`;
+      pmTrack.style.transform = `translateX(-${(pmIndex / pmCount) * 100}%)`;
+    }
+    pmPrev.addEventListener('click', ()=> { pmIndex = (pmIndex-1+pmCount)%pmCount; updatePm(); });
+    pmNext.addEventListener('click', ()=> { pmIndex = (pmIndex+1)%pmCount; updatePm(); });
+    setInterval(()=> { if (pmAutoChk.checked) { pmIndex = (pmIndex+1)%pmCount; updatePm(); } }, 4200);
+    updatePm();
+
+    // Helpdesk submit (open mail client)
+    function sendHelpdesk(e) {
+      e.preventDefault();
+      const form = new FormData(e.target);
+      const name = encodeURIComponent(form.get('name'));
+      const email = encodeURIComponent(form.get('email'));
+      const q = encodeURIComponent(form.get('question'));
+      const subject = encodeURIComponent('Helpdesk Query from ' + decodeURIComponent(name));
+      const body = encodeURIComponent('Name: ' + decodeURIComponent(name) + '\\nEmail: ' + decodeURIComponent(email) + '\\nQuestion: ' + decodeURIComponent(q));
+      window.location.href = `mailto:dorekiid@gmail.com?subject=${subject}&body=${body}`;
+    }
+
+    // Feedback handlers (local)
+    document.querySelectorAll('.feedback-star').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('.feedback-star').forEach(b=>b.classList.remove('bg-white/10'));
+        btn.classList.add('bg-white/10');
+      });
+    });
+    document.querySelectorAll('.emoji-btn').forEach(b => {
+      b.addEventListener('click', () => {
+        document.querySelectorAll('.emoji-btn').forEach(x=>x.classList.remove('ring-2','ring-white/20'));
+        b.classList.add('ring-2','ring-white/20');
+      });
+    });
+    function sendFeedback(e) {
+      e.preventDefault();
+      alert((lang==='en') ? 'Thanks for feedback! (Demo submission)' : 'प्रतिक्रिया के लिए धन्यवाद! (डेमो सबमिशन)');
+      e.target.reset();
+    }
+    document.getElementById('feedbackForm').addEventListener('submit', sendFeedback);
+
+    // Small UX: clicking slide -> open href (currently '#')
+    document.querySelectorAll('.sh-slide, .pm-slide').forEach(sl => {
+      sl.addEventListener('click', (ev) => {
+        const link = sl.getAttribute('href') || '#';
+        if (link && link !== '#') window.open(link, '_blank');
+      });
+    });
+
+    // Accessibility: close modal on Escape
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') {
+        closeCardModal();
+      }
+    });
+
+  </script>
+</body>
+</html>
